@@ -5,6 +5,8 @@ import com.dailycodework.ilibrary.exception.UserAlreadyExistsException;
 import com.dailycodework.ilibrary.exception.UserNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,14 +16,20 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class UserService implements IUserService {
+    @Autowired
     private final UserRepository userRepository;
-
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     @Override
     public User add(User user) {
         Optional<User> theUser = userRepository.findByEmail(user.getEmail());
         if (theUser.isPresent()){
             throw new UserAlreadyExistsException("A user with " +user.getEmail() +" already exists");
         }
+        user.setFirstName(user.getFirstName());
+        user.setLastName(user.getLastName());
+        user.setRoles(user.getRoles());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
@@ -50,7 +58,7 @@ public class UserService implements IUserService {
 
     @Override
     public User update(User user) {
-        user.setRole(user.getRole());
+        user.setRoles(user.getRoles());
         return userRepository.save(user);
     }
 }
